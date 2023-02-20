@@ -8,7 +8,7 @@ const {
 
 const { addScema, updateScema } = require('../utils/contactAddScema');
 
-const getContact = async (req, res, next) => {
+const getContact = async (req, res) => {
     try {
         const result = await listContacts();
         res.json(result);
@@ -19,7 +19,7 @@ const getContact = async (req, res, next) => {
     }
 };
 
-const getById = async (req, res, next) => {
+const getById = async (req, res) => {
     try {
         const id = req.params.contactId;
         const result = await getContactById(id);
@@ -36,7 +36,7 @@ const getById = async (req, res, next) => {
     }
 };
 
-const postContact = async (req, res, next) => {
+const postContact = async (req, res) => {
     try {
         const { name, email, phone } = req.body;
         const newContact = { name, email, phone };
@@ -55,7 +55,7 @@ const postContact = async (req, res, next) => {
     }
 };
 
-const deleteContactById = async (req, res, next) => {
+const deleteContactById = async (req, res) => {
     try {
         const { contactId } = req.params;
         const result = await removeContact(contactId);
@@ -71,7 +71,7 @@ const deleteContactById = async (req, res, next) => {
     }
 };
 
-const changeContactById = async (req, res, next) => {
+const changeContactById = async (req, res) => {
     try {
         const { contactId } = req.params;
 
