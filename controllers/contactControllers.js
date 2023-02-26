@@ -1,106 +1,82 @@
-const {
-    listContacts,
-    getContactById,
-    addContact,
-    removeContact,
-    updateContact,
-} = require('../models/contacts');
-
+const Contact = require('../models/contact');
+const { HttpError, ctrlWrapper } = require('../utils/');
 const { addScema, updateScema } = require('../utils/contactAddScema');
 
 const getContact = async (req, res) => {
-    try {
-        const result = await listContacts();
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({
-            message: 'Server error',
-        });
+    const result = await Contact.find();
+    if (!result) {
+        throw HttpError(404, 'Not Found');
     }
-};
-
-const getById = async (req, res) => {
-    try {
-        const id = req.params.contactId;
-        const result = await getContactById(id);
-        if (!result) {
-            return res.status(404).json({
-                message: `Not found ${id}`,
-            });
-        }
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({
-            message: 'Server error',
-        });
-    }
+    res.json(result);
 };
 
 const postContact = async (req, res) => {
-    try {
-        const { name, email, phone } = req.body;
-        const newContact = { name, email, phone };
-        const { error } = addScema.validate(newContact);
-
-        if (error) {
-            res.status(400).json({ message: 'missing required name field' });
-            return;
-        }
-        const result = await addContact(newContact);
-        res.status(201).json({ result });
-    } catch (error) {
-        res.status(500).json({
-            message: 'Server error',
-        });
+    const body = req.body;
+    const { error } = addScema.validate(body);
+    if (error) {
+        throw HttpError(400, 'error in the fields');
     }
+    const result = await Contact.create(req.body);
+    res.status(201).json(result);
+};
+
+const updateStatusContact = async (req, res) => {
+    const id = req.params.contactId;
+    const body = req.body;
+    if (!body) {
+        throw HttpError(400, 'missing field favorite');
+    }
+    const result = await Contact.findByIdAndUpdate(id, body, { new: true });
+    if (!result) {
+        throw HttpError(404, 'Not found');
+    }
+    res.json(result);
+};
+
+const getById = async (req, res) => {
+    const id = req.params.contactId;
+    console.log('req.params.contactId', req.params.contactId);
+    const result = await Contact.findOne({ _id: id });
+    if (!result) {
+        throw HttpError(404, 'Not found');
+    }
+    res.json(result);
 };
 
 const deleteContactById = async (req, res) => {
-    try {
-        const { contactId } = req.params;
-        const result = await removeContact(contactId);
-        if (result) {
-            res.status(200).json({ message: 'contact deleted' });
-            return;
-        }
-        res.status(404).json({ message: 'Not found' });
-    } catch (error) {
-        res.status(500).json({
-            message: 'Server error',
-        });
+    const { contactId } = req.params;
+    const result = await Contact.findByIdAndRemove(contactId);
+    if (!result) {
+        throw HttpError(404, 'Not found');
     }
+    res.status(200).json({ message: 'contact deleted' });
 };
 
 const changeContactById = async (req, res) => {
-    try {
-        const { contactId } = req.params;
-
-        const body = req.body;
-        if (!body) {
-            return res.status(400).json({ message: 'missing fields' });
-        }
-
-        const { error } = updateScema.validate(body);
-        if (error) {
-            return res.status(400).json({ message: 'error in the fields' });
-        }
-
-        const result = await updateContact(contactId, body);
-        if (!result) {
-            res.status(404).json({ message: 'Not found' });
-        }
-        res.status(200).json({ result });
-    } catch (error) {
-        res.status(500).json({
-            message: 'Server error',
-        });
+    const { contactId } = req.params;
+    const body = req.body;
+    if (!body) {
+        throw HttpError(400, 'missing fields');
     }
+
+    const { error } = updateScema.validate(body);
+    if (error) {
+        throw HttpError(400, 'error in the fields');
+    }
+    const result = await Contact.findOneAndUpdate(contactId, body, {
+        new: true,
+    });
+    if (!result) {
+        throw HttpError(404, 'Not found');
+    }
+    res.status(200).json({ result });
 };
 
 module.exports = {
-    getContact,
-    getById,
-    postContact,
-    deleteContactById,
-    changeContactById,
+    getContact: ctrlWrapper(getContact),
+    postContact: ctrlWrapper(postContact),
+    updateStatusContact: ctrlWrapper(updateStatusContact),
+    getById: ctrlWrapper(getById),
+    deleteContactById: ctrlWrapper(deleteContactById),
+    changeContactById: ctrlWrapper(changeContactById),
 };
