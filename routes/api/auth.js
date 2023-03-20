@@ -18,7 +18,9 @@ router.get('/current', authenticate, ctrl.current);
 
 router.post('/logout', authenticate, ctrl.logout);
 
-router.get('/users/verify/:verificationToken', authenticate, 'vvvv');
+router.get('/users/verify/:verificationToken', ctrl.verifyEmail);
+
+router.post('/users/verify', ctrl.resendEmail);
 
 router.post(
     '/avatars',
