@@ -18,6 +18,8 @@ router.get('/current', authenticate, ctrl.current);
 
 router.post('/logout', authenticate, ctrl.logout);
 
+router.get('/users/verify/:verificationToken', authenticate, 'vvvv');
+
 router.post(
     '/avatars',
     authenticate,
